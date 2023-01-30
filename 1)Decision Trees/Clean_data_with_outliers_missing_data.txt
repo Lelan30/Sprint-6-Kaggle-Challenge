@@ -1,0 +1,44 @@
+#Outliers: a data point that is different from the rest of your data set in some way
+#(Can be a rusult of an error, corrupted data, or a true value that just happens to be different)
+#Model training can be affected by outliers so we remove or adjust them
+#Apply a 'log transform': take the logorithm of an outlier to reduce its effect on analysis
+
+#Missing Values: NAN's, or COULD be 0's, or '9999', or some random string
+
+import pandas as pd
+import seaborn as sns
+
+planets = sns.load_dataset("planets")
+display(planets.head())
+
+display(planets.info())
+
+print(planets.isnull().sum())
+
+planets_drop = planets.dropna(axis=0, how='any', inplace=False)
+display(planets_drop.info())
+
+import matplotlib.pyplot as plt
+#Create axes and figure objects
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+#Plot one set of variables
+sns.scatterplot(x='orbital_period', y='distance', data=planets_drop, ax=ax1)
+
+#Plot another variable against orbital period
+sns.scatterplot(x='orbital_period', y='mass', data=planets_drop, ax=ax2)
+
+fig.show()
+
+#We have afew outliers in the dataset, or theyre planets with very long orbital periods
+#Create some box plots to see how they compare to the median distribution
+
+#Box Plot
+#Create axes and figure objects again
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 5))
+
+sns.boxplot(y=planets_drop['orbital_period'], ax = ax1)
+sns.boxplot(y=planets_drop['mass'], ax = ax2)
+sns.boxplot(y=planets_drop['distance'], ax = ax3)
+
+fig.show()

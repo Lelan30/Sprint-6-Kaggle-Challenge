@@ -1,0 +1,39 @@
+#< 0.5 threshold
+#Very delicate situations require this threshold to change much higher
+
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
+#Create the data (feature and target)
+X, y = make_classification(n_samples=10000, n_features=5,
+                           n_classes=2, n_informative=3,
+                           random_state=42)
+
+#Split the data into train test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+#Create and fit the model
+logreg_classifier = LogisticRegression().fit(X_train, y_train)
+
+#Now look at target probabilities with predict_proba
+
+#The value of the 10th observation
+print('The 10th observation: ', X_test[10:11])
+
+#Print out the probability for the 10th observation
+print('Predicted probability for the 10th observation: ', logreg_classifier.predict_proba(X_test)[10:11])
+
+#Print the two classes
+print('The two classes: ', logreg_classifier.classes_)
+
+#Outcome: 
+#This observation has a 74% chance of belonging to the first class and a 26% change 
+#of belonging to the 2nd class.
+
+#Check the class of the 10th observation
+logreg_classifier.predict(X_test[10:11])
+
+#Outcome:
+# The 10th observation was predicted to be in the first class (0),
+#and it was

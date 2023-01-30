@@ -1,0 +1,93 @@
+#Use scikitlearn for hyperparameter optimization
+
+import numpy as np 
+import pandas as pd
+
+from sklearn import datasets
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import validation_curve
+
+digits = datasets.load_digits(n_class=10)
+
+#Create feature matrix
+X = digits.data
+print('The shape of the feature matrix: ', X.shape)
+
+#Create target array
+y = digits.target
+print('The shape of the target array: ', y.shape)
+print('The unique class in the target: ', np.unique(y))
+
+
+#Use decision tree classifier and vary the max depth of the tree and check accuracy
+#Training score should approach 100%(1.0). Testing score close to 1.0
+
+#Create the validation curve
+depth = range(1, 30, 3)
+train_scores, test_scores = validation_curve(
+    DecisionTreeClassifier(), X, y, param_name="max_depth", param_range=depth,
+    scoring="accuracy", n_jobs=1)
+
+train_scores_mean = np.mean(train_scores, axis=1)
+test_scores_mean = np.mean(test_scores, axis=1)
+
+#Plot the validation curve
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(8, 8))
+
+ax.plot(depth, train_scores_mean, label='Training score',
+        color='darkorange', lw=2)
+ax.plot(depth, test_scores_mean, label='Cross-Validation score',
+        color='navy', lw=2)
+
+ax.set_title("Validation curve with Decision Tree Classifier")
+ax.set_xlabel("Max Tree Depth")
+ax.set_ylabel("Score (accuracy)")
+ax.set_ylim(0.0, 1.1)
+
+ax.legend(loc='lower right')
+
+plt.show()
+fig.clf()
+
+#Outcome:
+#Big difference between the accuracy score when we validate or test the model
+#This might imply, that the model isnt generalizing well to new data and possibly 
+#overfitting
+
+#RandomizedSearchCV,
+#If we want to vary more than one parameter:
+
+#A Grid Search - create a 'grid' of all possible values for the hyperparameter we'd like to test
+#(the model with the best performance score and corresponding hyperparams is the best model) 
+
+#A randomized search - a random search through hyperparam's space
+#(less computationally intensive as the set of hyperparams is randomly selected)
+
+from scipy.stats import randint
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import RandomizedSearchCV
+
+#Set-up the hyperparams and distributions to sample from: param_dist
+param_dist = {"max_depth": [3, None],
+              "max_features": randint(1, 9),
+              "min_samples_leaf": randint(1, 9),
+              "criterion": ["gini", 'entropy']}
+          
+#Instantiate Decision Tree Classifier
+tree = DecisionTreeClassifier()
+
+#Instantiate the RandomizedSearchCV object: tree_cv
+tree_cv = RandomizedSearchCV(tree, param_dist, cv=5)
+
+#fit the data
+tree_cv.fit(X, y)
+
+#print the tuned hyperparams and score
+print('Tunes Decision Tree Hyperparameters: {}'.format(tree_cv.best_params_))
+print('Best score is {}'.format(tree_cv.best_score_))
+
+#Display cv results by ranking the test scores
+import pandas as pd
+pd.DataFrame(tree_cv.cv_results_).sort_values(by='rank_test_score').T

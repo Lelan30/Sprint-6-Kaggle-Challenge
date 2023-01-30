@@ -1,0 +1,67 @@
+#Decision trees are a type of Supervised Learning and can be used on both:
+#classification and regression problems.
+#Easy to understand and visualize, and can handle both numeric and vcategorical data
+
+#Decision Tree: A dataset that we SPLIT or fork by asking a series of questions.
+#the data is then evaluated at each question, or NODE,
+#then split again according to the answer to that question.
+#Each SPLIT is called a BRANCH, and BRANCH ends in NODES.
+
+#Two different methods to split a node:
+#For REGRESSION task with continuos variables - minimize the variance of the values
+#For CLASSIFICATION task, the Gini impurity is used to measure the 'purity' of the split
+#(If the value belongs to one class the node has maximum purity)
+
+#Classify each pengion as male or female based on the physical characteristics and species
+
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+
+#Use decision tree classifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+
+#Set-up the one hot encoder method
+categorical_features = ['species']
+categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder())])
+
+#Set-up our preprocessor/column transformer
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('cat', categorical_transformer, categorical_features)])
+
+#Add classifier to the preprocessing pipeline
+pipeline = Pipeline(steps=[('preprocessor', preprocessor),
+                            ('classifier', DecisionTreeClassifier())])
+
+#Load in the data
+
+import pandas as pd
+import seaborn as sns
+
+penguins = sns.load_dataset("penguins")
+penguins.dropna(inplace=True)
+
+#Select features
+features = ['species', 'bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
+X = penguins[features]
+
+#Encode the 'sex' column
+from sklearn import preprocessing
+le = preprocessing.LabelEncoder()
+penguins['sex_encode'] = le.fit_transform(penguins['sex'])
+
+#Set target array
+y = penguins['sex_encode']
+
+#Apply pipeline
+
+#Seperate into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+
+#Fit the model with our logistic regression classifier
+pipeline.fit(X_train, y_train)
+print("model score: %.3f" % pipeline.score(X_test, y_test))
+
+#Outcome: Model performs slightly better than the logistic regression model proir to this

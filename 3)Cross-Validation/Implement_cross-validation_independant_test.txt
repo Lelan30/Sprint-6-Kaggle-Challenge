@@ -1,0 +1,54 @@
+#Get different model scores with different validation sets
+#(A way around this is using more than one validation set)
+
+#Cross-Validation: divide the rows of our data set into k equally-sized
+#sets or 'folds' for example:
+#splitting data into 5 random folds (20% in each fold), train the model 
+#and validate it k(5) times. 1 will be our val set and the other 4 train data.
+#each fold takes a turn being validation data sets (train model 5 times)
+
+#To avoid data leakage seperate train/test set or cross-val set 
+#THEN standardize(rescale to fit between 0 and 1)
+
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import KFold, cross_val_score
+from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+
+#the default with 10 classes (digits 0-9)
+digits = datasets.load_digits(n_class=10)
+
+#Create feature matrix
+features = digits.data
+print('The shape of the feature matrix: ', features.shape)
+
+#Create the target array
+target = digits.target
+print('The shape of the target array: ', target.shape)
+print('The unique classes in the target: ', np.unique(target))
+
+#Instatiate the standardizer
+standardizer = StandardScaler()
+
+#Instantiate the classifier
+logreg = LogisticRegression(max_iter=150)
+
+#Create the piepline
+pipeline = make_pipeline(standardizer, logreg)
+
+#Instantiate the k-fold crossvalidation
+kfold_cv = KFold(n_splits=5, shuffle=True, random_state=11)
+
+#Fit the model using k-fold cross val
+cv_scores = cross_val_score(pipeline, features, target,
+                            cv=kfold_cv, scoring='accuracy')
+
+#Print the mean score
+print('All cv scores: ', cv_scores)
+print('Mean of all cv scores ', cv_scores.mean())
+
+
+#Outcome:
+#Displayed all the scored and aslo the mean of scores

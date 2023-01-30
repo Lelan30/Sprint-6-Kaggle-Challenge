@@ -1,0 +1,65 @@
+#Random Forest: an ensamble method where many decision trees are trained.
+#(Combining the results of two or more decision trees improves the fit)
+#Train on random subsets of data, combine the results with other randomly trained trees
+
+from sklearn.datasets import load_wine
+import pandas as pd
+
+data = load_wine()
+df_wine = pd.DataFrame(data.data, columns=data.feature_names)
+df_wine['target'] = pd.Series(data.target)
+df_wine.head()
+
+X = df_wine.drop('target', axis=1)
+y = df_wine['target']
+
+from sklearn.model_selection import train_test_split
+
+#Split dataset into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+
+#Import Random forest model
+from sklearn.ensemble import RandomForestClassifier
+
+#Create a Guassian Classifier
+rf_classifier = RandomForestClassifier(n_estimators=100)
+
+#Train the model using the training sets y_pred=clf.predict(X_test)
+rf_classifier.fit(X_train, y_train)
+
+y_pred= rf_classifier.predict(X_test)
+#Fit the model with our logistic regression classifier
+
+print("model score: %.3f" % rf_classifier.score(X_test, y_test))
+
+#Use decicion tree classifier
+from sklearn.tree import DecisionTreeClassifier
+
+#Instatiate the classifier
+dt_classifier = DecisionTreeClassifier()
+
+#Train the model using the training sets
+dt_classifier.fit(X_train, y_train)
+
+#Find the model score
+print("Decision tree model score: %.3f" % dt_classifier.score(X_test, y_test))
+
+#Decisionn tree model didnt perform as well as random forest model which should be as expected
+#Now comparing feature importance for the model side by side
+
+import matplotlib.pyplot as plt
+
+rf_importances = pd.Series(rf_classifier.feature_importances_, X.columns)
+dt_importances = pd.Series(dt_classifier.feature_importances_, X.columns)
+
+#Plot top n features
+n = 13
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, n/2))
+ax1.set_title(f'Decision Tree: Top {n} features')
+ax2.set_title(f'Random Forest: Top {n} features')
+dt_importances.sort_values()[-n:].plot.barh(ax=ax1)
+rf_importances.sort_values()[-n:].plot.barh(ax=ax2)
+
+fig.show()
+
+

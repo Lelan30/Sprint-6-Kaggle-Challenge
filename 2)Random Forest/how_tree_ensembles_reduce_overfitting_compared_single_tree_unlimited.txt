@@ -1,0 +1,104 @@
+#Undertsanding how tree ensembles reduce overfitting compared to a single decision tree with unlimited depth
+
+import pandas as pd
+import seaborn as sns
+
+penguins = sns.load_dataset("penguins")
+
+#Remove NANs and nulls
+penguins.dropna(inplace=True)
+
+display(penguins.head())
+
+#Use numeric columns to predict the class (male or female)
+#Logistic regression, decision tree, and random forest problem
+
+#Create the feature matrix
+X = penguins.drop(['species', 'island', 'sex'], axis=1)
+
+#create the target array
+from sklearn import preprocessing
+le = preprocessing.LabelEncoder()
+y = le.fit_transform(penguins['sex'])
+
+#Create thraining and testing data
+from sklearn.model_selection import train_test_split
+X_test, X_train, y_test, y_train = train_test_split(X, y, test_size=0.25 )
+
+#Import the classifiers
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+#Fit the model with logistic regression classifier
+logreg = LogisticRegression()
+logreg.fit(X_train, y_train)
+print("Logistic Regression model score: %.3f" % logreg.score(X_test, y_test))
+
+#Fit the model with decision tree classifier
+tree = DecisionTreeClassifier()
+tree.fit(X_train, y_train)
+print("Decision tree model score: %.3f" % tree.score(X_test, y_test))
+
+#Fit the model with a random forest classifier
+trees_rand = RandomForestClassifier()
+trees_rand.fit(X_train, y_train)
+print('Random Forest model score: %.3f' % trees_rand.score(X_test, y_test))
+
+#Look at accuracy for a different number of trees
+#fit the model with a decision tree classifier
+tree = DecisionTreeClassifier()
+tree.fit(X_train, y_train)
+print('Decision tree model score: %.3f' % tree.score(X_train, y_train))
+
+#Look at training accuracy vs test accuracy
+#Decision tree
+accuracy_train = []
+accuracy_test = []
+
+for i in range(1, 160, 5):
+  tree = RandomForestClassifier(max_depth=i)
+  tree.fit(X_train, y_train)
+  accuracy_test.append(tree.score(X_test, y_test))
+  accuracy_train.append(tree.score(X_train, y_train))
+
+#Look at training accuracy vs test accuracy
+rf_accuracy_train = []
+rf_accuracy_test = []
+
+for i in range(1, 160, 5):
+  tree = RandomForestClassifier(max_depth=i)
+  tree.fit(X_train, y_train)
+  rf_accuracy_test.append(tree.score(X_test, y_test))
+  rf_accuracy_train.append(tree.score(X_train, y_train))
+
+# Plot the results of the train vs. test accuracy
+import matplotlib.pyplot as plt
+
+fig, (ax1, ax2) = plt.subplots(1,2, figsize=(10,5))
+
+xvals = range(1, 160, 5)
+ax1.plot(xvals, accuracy_train, color='b', label='train')
+ax1.plot(xvals, accuracy_test, color='red', label='test')
+ax1.legend()
+
+ax2.plot(xvals, rf_accuracy_train, color='b', label='train')
+ax2.plot(xvals, rf_accuracy_test, color='red', label='test')
+ax2.legend()
+
+ax1.set_ylim([0.65, 1.02])
+ax2.set_ylim([0.65, 1.02])
+
+ax1.set_xlabel('Number of nodes (max depth of the tree)')
+ax2.set_xlabel('Number of nodes (max depth of the tree)')
+ax1.set_ylabel('Accuracy')
+ax1.set_title('Decision Tree')
+ax2.set_title('Random Forest')
+
+fig.show()
+
+
+
+
+

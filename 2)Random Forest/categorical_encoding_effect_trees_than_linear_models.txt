@@ -1,0 +1,92 @@
+#If the data contains both continous numeric features and one-hot-encoding categorical
+#features, then the continous variable will be assigned higher feature importance because
+#splitting them will reduce the variance or impurity more than the categorical variable
+
+#From the properties of each type of mushroom we are trying to predict which class
+#it belongs to: definately edible or definately poisonous
+
+import pandas as pd
+import numpy as np
+
+url = 'https://tinyurl.com/y884c98f'
+mushrooms = pd.read_csv(url)
+mushrooms.head()
+
+#Contains 5 rows and 23 columns
+
+#most variables in this dataset are categorical. Encode them to use in the model.
+#Logistic regression and tree based models will be used
+
+#Create the feature matrix
+X = mushrooms.drop('class', axis=1)
+
+#Create and encode the target column
+from sklearn import preprocessing
+le = preprocessing.LabelEncoder()
+y = le.fit_transform(mushrooms['class'])
+
+#import
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+
+#Use decision tree classifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+
+#Set-up OneHotEncoder
+categorical_features = X.columns
+categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder())])
+
+#Set-up our preprocessor/column transformer
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('cat', categorical_transformer, categorical_features)])
+
+#Add the classifier to the preprocessing pipeline
+pipeline = Pipeline(steps=[('preprocessor', preprocessor),
+                       ('classifer', DecisionTreeClassifier())])
+
+#Apply the pipeline
+
+#seperate the training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+
+#Fit the model with our decision tree classifier
+pipeline.fit(X_train, y_train)
+print('Decision tree model score: %.3f' % pipeline.score(X_test, y_test))
+
+#Use logistic regression classifier
+from sklearn.linear_model import LogisticRegression
+
+#Add the classifier to the preprocessing pipeline
+pipeline_logreg = Pipeline(steps=[('preprocessor', preprocessor),
+                                  ('classifier', LogisticRegression())])
+
+#Apply the pipeline
+#Seperate into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
+
+#Fit the model with out logistic regression classifier
+pipeline_logreg.fit(X_train, y_train)
+print('Logistic regression model score: %.3f' % pipeline_logreg.score(X_test, y_test))
+
+# Set-up the ordinal encoder
+
+from sklearn.preprocessing import OrdinalEncoder
+categorical_features = X.columns
+categorical_transformer = Pipeline(steps=[('ordinal', OrdinalEncoder())])
+
+# Set up our preprocessor/column transformer
+preprocessor_ord = ColumnTransformer(
+    transformers=[
+        ('cat', categorical_transformer, categorical_features)])
+
+# Add the classifier to the preprocessing pipeline
+pipeline_ord = Pipeline(steps=[('preprocessor_ord', preprocessor_ord),
+                      ('classifier', DecisionTreeClassifier())])
+
+# Fit the model with our decision tree classifier
+pipeline_ord.fit(X_train, y_train)
+print("Decision tree model score (ordinal encoded): %.3f" % pipeline_ord.score(X_test, y_test))
+
